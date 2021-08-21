@@ -148,5 +148,33 @@ namespace Microsoft.CodeAnalysis
                 typeSymbol = typeSymbol.BaseType;
             }
         }
+
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
+            where TOperation : class, IOperation
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            var ancestor = root;
+            do
+            {
+                ancestor = ancestor.Parent;
+            } while (ancestor != null && ancestor.Kind != ancestorKind);
+
+            if (ancestor != null)
+            {
+                if (predicate != null && !predicate((TOperation)ancestor))
+                {
+                    return GetAncestor(ancestor, ancestorKind, predicate);
+                }
+                return (TOperation)ancestor;
+            }
+            else
+            {
+                return default;
+            }
+        }
     }
 }

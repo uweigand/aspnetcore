@@ -18,6 +18,7 @@ public partial class DelegateEndpointAnalyzer : DiagnosticAnalyzer
     {
         DiagnosticDescriptors.DoNotUseModelBindingAttributesOnDelegateEndpointParameters,
         DiagnosticDescriptors.DoNotReturnActionResultsFromMapActions,
+        DiagnosticDescriptors.DetectMisplacedLambdaAttribute
     });
 
     public override void Initialize(AnalysisContext context)
@@ -38,7 +39,10 @@ public partial class DelegateEndpointAnalyzer : DiagnosticAnalyzer
             {
                 var invocation = (IInvocationOperation)operationAnalysisContext.Operation;
                 var targetMethod = invocation.TargetMethod;
-                if (IsDelegateHandlerInvocation(wellKnownTypes, invocation, targetMethod))
+
+                DetectMisplacedLambdaAttribute(operationAnalysisContext, wellKnownTypes, invocation, targetMethod);
+
+                if (IsNotDelegateHandlerInvocation(wellKnownTypes, invocation, targetMethod))
                 {
                     return;
                 }
@@ -104,7 +108,7 @@ public partial class DelegateEndpointAnalyzer : DiagnosticAnalyzer
         });
     }
 
-    private static bool IsDelegateHandlerInvocation(
+    private static bool IsNotDelegateHandlerInvocation(
         WellKnownTypes wellKnownTypes,
         IInvocationOperation invocation,
         IMethodSymbol targetMethod)
